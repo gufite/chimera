@@ -1,5 +1,7 @@
 # Project Chimera — Day 1 Report
 
+**Name:** Gutema Fite  
+**Email:** gutfite@gmail.com  
 **Role:** Forward Deployed Engineer (FDE) Trainee  
 **Mission:** Architect the "Factory" that builds the "Autonomous Influencer"  
 **Date:** February 4, 2026
