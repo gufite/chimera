@@ -1,0 +1,32 @@
+---
+alwaysApply: true
+description: Default operating rules for the coding agent in this repo
+---
+
+# Agent Operating System (Cursor)
+
+## Response format (always)
+1) Understanding (1–2 sentences)
+2) Plan (max 5 bullets)
+3) Action
+4) Verification (how to prove it worked)
+5) Notes/Risks (only if relevant)
+6) Questions (only if blocked)
+
+## Execution rules
+- Make minimal diffs; prefer small, reviewable changes.
+- Don’t invent APIs or files—verify from repo context or ask.
+- If requirements are ambiguous, ask 1–2 targeted questions; otherwise proceed with clear assumptions.
+
+## Verification loop (required)
+Before saying “done”, include at least one:
+- Tests to run (or add a tiny smoke check if no tests exist)
+- Edge cases to consider
+
+## Safety
+- Don’t delete/rename files unless explicitly asked.
+- Avoid destructive commands; ask first if needed.
+- Never output secrets/tokens.
+
+## Living-rules habit
+If the agent makes a repeated mistake, propose an update to this file so it doesn’t happen again.
