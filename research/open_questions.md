@@ -98,6 +98,74 @@ implementations or seek alternatives?
 
 ---
 
+### 6. OpenClaw Registry Endpoints
+
+**Context:** The OpenClaw integration spec requires publishing status beacons
+to registry endpoints.
+
+**Question:** Are there official OpenClaw registry endpoints, or is the
+ecosystem federated with multiple independent registries?
+
+**Considerations:**
+- Centralized: Simpler configuration, single point of failure
+- Federated: Requires multi-endpoint support, more complex error handling
+- May require endpoint discovery mechanism
+
+**Resolution Target:** `specs/openclaw_integration.md` Section: Configuration
+
+---
+
+### 7. OpenClaw Authentication
+
+**Context:** Status beacon publishing requires authentication with OpenClaw
+endpoints.
+
+**Question:** What authentication mechanism does OpenClaw require (OAuth, API
+key, wallet signature, or none)?
+
+**Considerations:**
+- Wallet signature: Aligns with agent identity model
+- API key: Simpler but requires key management
+- OAuth: Standard but may be overkill for beacons
+
+**Resolution Target:** `specs/openclaw_integration.md` Section: MCP Server Implementation
+
+---
+
+### 8. OpenClaw Capability Schema
+
+**Context:** Status beacons include capability declarations for agent
+discovery.
+
+**Question:** Is there a standardized schema for capability declarations in
+OpenClaw, or should Chimera define its own?
+
+**Considerations:**
+- Standardized: Better interoperability, may not fit Chimera's model
+- Custom: Flexibility, but reduced discoverability
+- Hybrid: Use standard categories with custom extensions
+
+**Resolution Target:** `specs/openclaw_integration.md` Section: Status Data Contract
+
+---
+
+### 9. Agent Discovery Query Support
+
+**Context:** OpenClaw may support discovery queries where other agents can
+search for capabilities.
+
+**Question:** Should Chimera support inbound discovery queries, or remain
+publish-only?
+
+**Considerations:**
+- Publish-only: Simpler, maintains strict trust boundary
+- Query support: Better ecosystem participation, requires careful input handling
+- Current spec explicitly scopes out inbound queries
+
+**Resolution Target:** Future specification if required; currently out of scope
+
+---
+
 ## Resolution Process
 
 When resolving a question:
@@ -119,6 +187,7 @@ When resolving a question:
 
 - `specs/_meta.md` — Constitution (does not depend on these questions)
 - `specs/technical.md` — Primary resolution target for implementation decisions
+- `specs/openclaw_integration.md` — OpenClaw-specific design decisions
 - `research/architecture_strategy.md` — Background research and recommendations
 
 ---
