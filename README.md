@@ -117,7 +117,7 @@ chimera/
 - [x] Task 1.1: Deep Research & Reading
 - [x] Task 1.2: Domain Architecture Strategy
 - [x] Task 1.3: Golden Environment Setup
-- [ ] Task 2.1: Master Specification
+- [x] Task 2.1: Master Specification
 - [ ] Task 2.2: Context Engineering
 - [ ] Task 2.3: Tooling & Skills Strategy
 - [ ] Task 3.1: Test-Driven Development

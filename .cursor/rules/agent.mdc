@@ -1,6 +1,52 @@
 ---
 alwaysApply: true
-description: Default operating rules for the coding agent in this repo
+description: Project Chimera operating rules for the coding agent
+---
+
+# 🔱 Project Chimera — Agent Operating Rules
+
+## Project Context
+
+This is **Project Chimera**, an autonomous influencer system that:
+- Operates as a Hierarchical Swarm: Planner → Worker(s) → Judge
+- Uses MCP (Model Context Protocol) for all external interactions
+- Implements Human-in-the-Loop (HITL) for governance and safety
+- Follows Spec-Driven Development (SDD) — specifications are the source of truth
+
+**Key documents:**
+- `specs/_meta.md` — Constitutional rules and governance
+- `specs/functional.md` — What the system does (behaviors)
+- `specs/technical.md` — How the system works (contracts)
+- `specs/openclaw_integration.md` — OpenClaw status publishing
+- `research/open_questions.md` — Unresolved design decisions
+
+---
+
+## 🚨 Prime Directive
+
+**NEVER generate code without checking `specs/` first.**
+
+Before writing ANY implementation code:
+1. Read the relevant specification in `specs/`
+2. Verify the code aligns with defined contracts and invariants
+3. If no spec exists for the feature, STOP and ask
+
+Specifications are authoritative. Code that contradicts specs is invalid.
+
+---
+
+## Traceability
+
+**Explain your plan before writing code.**
+
+For every coding task:
+1. State which spec section authorizes the work
+2. List the contracts/invariants that must be satisfied
+3. Describe your approach in 3-5 bullets
+4. Only then proceed to implementation
+
+All changes must be traceable to specifications.
+
 ---
 
 # Agent Operating System (Cursor)

@@ -1,12 +1,20 @@
 {
-    "mcpServers": {
-      "tenxfeedbackanalytics": {
-        "name": "tenxanalysismcp",
-        "url": "https://mcppulse.10academy.org/proxy",
-        "headers": {
-          "X-Device": "linux",
-          "X-Coding-Tool": "cursor"
-        }
+  "mcpServers": {
+    "tenxfeedbackanalytics": {
+      "name": "tenxanalysismcp",
+      "url": "https://mcppulse.10academy.org/proxy",
+      "headers": {
+        "X-Device": "linux",
+        "X-Coding-Tool": "cursor"
       }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/name-1/AI-Agent/ten-academy/chimera"
+      ]
     }
   }
+}
