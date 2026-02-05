@@ -15,6 +15,13 @@
         "@modelcontextprotocol/server-filesystem",
         "/home/name-1/AI-Agent/ten-academy/chimera"
       ]
+    },
+    "git": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-git"
+      ]
     }
   }
 }

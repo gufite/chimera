@@ -1,7 +1,7 @@
 # Tooling Strategy — Project Chimera
 
 > **Status:** Active  
-> **Version:** 1.0.0  
+> **Version:** 1.1.0  
 > **Last Updated:** 2026-02-05  
 > **Owner:** FDE Trainee (Lead Architect)
 
@@ -21,6 +21,21 @@ interface for all external interactions. This document captures:
 - Available and required MCP servers
 - Development environment tooling
 - Configuration management
+
+### 1.1 Why Developer Tooling MCP?
+
+Per the 3-Day Challenge requirements and `specs/_meta.md`, Project Chimera
+enforces:
+
+| Requirement | How MCP Tooling Supports It |
+|-------------|----------------------------|
+| **Traceability** | All agent actions logged via MCP; Git MCP provides commit history and change tracking |
+| **Git Hygiene** | Git MCP enables viewing status, diffs, and history without leaving the IDE |
+| **Spec-First Development** | Filesystem MCP allows reading specs before writing code |
+| **Auditability** | TenX Analytics captures interaction patterns and performance |
+
+These MCP servers form the **Developer Tooling Layer** that supports the
+challenge's governance and quality requirements.
 
 ---
 
@@ -42,6 +57,7 @@ flowchart TB
 
     subgraph Development["Development Servers"]
         FS[mcp-server-filesystem]
+        GIT[mcp-git]
         Sense[MCP Sense / Tracing]
     end
 
@@ -66,6 +82,7 @@ flowchart TB
     end
 
     Client <-->|Stdio| FS
+    Client <-->|Stdio| GIT
     Client <-->|SSE| Sense
     Client <-->|SSE| TW
     Client <-->|SSE| IG
@@ -125,9 +142,13 @@ and **Tools** (external MCP bridges).
 | Server | Package | Status | Priority |
 |--------|---------|--------|----------|
 | `filesystem` | `@modelcontextprotocol/server-filesystem` | ✅ Configured | Critical |
+| `git` | `mcp-git` (community) | ✅ Configured | Critical |
 | `weaviate` | `mcp-server-weaviate` (community) | ⚠️ Not yet | High |
 | `postgres` | `@modelcontextprotocol/server-postgres` | ⚠️ Not yet | High |
 | `coinbase` | `coinbase-agentkit-mcp` | ⚠️ Not yet | High |
+
+> **Note:** The official `@modelcontextprotocol/server-git` does not exist.
+> We use the community package `mcp-git` instead.
 
 ### 4.2 Platform Servers (Build vs Buy)
 
@@ -211,6 +232,13 @@ MCP servers for Cursor are configured in:
         "@modelcontextprotocol/server-filesystem",
         "/home/name-1/AI-Agent/ten-academy/chimera"
       ]
+    },
+    "git": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-git"
+      ]
     }
   }
 }
@@ -271,6 +299,61 @@ MCP servers for Cursor are configured in:
 - `X-Device`: Operating system identifier
 - `X-Coding-Tool`: IDE identifier
 
+#### 5.4.3 Git Server
+
+| Property | Value |
+|----------|-------|
+| Package | `mcp-git` (community) |
+| Transport | Stdio |
+| Command | `npx` |
+| Auto-confirm | `-y` flag |
+| Repository | Uses current working directory |
+
+**Usage pattern:**
+
+```json
+{
+  "command": "npx",
+  "args": ["-y", "mcp-git"]
+}
+```
+
+**Security notes:**
+- Operates on the current working directory
+- No explicit repository path restriction (operates where Cursor is opened)
+
+**Available tools:**
+- `git_status` — Show working tree status
+- `git_diff` — Show changes between commits/working tree
+- `git_log` — Show commit logs
+- `git_show` — Show commit details
+- `git_branch` — List or manage branches
+- `git_add` — Stage files
+- `git_commit` — Commit changes
+- `git_push` — Push to remote
+- `git_pull` — Pull from remote
+
+---
+
+## 5.5 Developer Tooling MCP Summary
+
+This table provides a quick reference for all configured Developer Tooling MCP
+servers:
+
+| Server | Category | Status | Purpose | Key Tools | Security Scope |
+|--------|----------|--------|---------|-----------|----------------|
+| `filesystem` | Developer Tooling | ✅ Active | Read/write files in repo | `read_file`, `write_file`, `list_directory` | Sandboxed to repo |
+| `git` | Developer Tooling | ✅ Active | Version control | `git_status`, `git_diff`, `git_log`, `git_commit` | Current working directory |
+| `tenxfeedbackanalytics` | Observability | ✅ Active | Competency tracking | `log_passage_time_trigger` | Remote service |
+
+### Smoke Tests for Active Servers
+
+| Server | Smoke Test Prompt |
+|--------|-------------------|
+| `filesystem` | "Use the filesystem MCP to list the files in the repo root" |
+| `git` | "Use the git MCP to show git status" |
+| `tenxfeedbackanalytics` | Automatic on each message (no manual test needed) |
+
 ---
 
 ## 6. Development Environment Tools
@@ -306,6 +389,62 @@ npx --version
 # Test filesystem server directly
 npx -y @modelcontextprotocol/server-filesystem --help
 ```
+
+---
+
+## 6.5 Daily Workflow with MCP Servers
+
+This section describes how to use the configured MCP servers during the
+3-Day Challenge development workflow.
+
+### 6.5.1 Workflow Overview
+
+```mermaid
+flowchart LR
+    subgraph Morning["Start of Session"]
+        A[Open Cursor] --> B[Verify MCP Servers]
+        B --> C[git status via MCP]
+    end
+
+    subgraph Development["Development Cycle"]
+        D[Read specs via filesystem MCP] --> E[Write code]
+        E --> F[git diff via MCP]
+        F --> G{Changes OK?}
+        G -->|Yes| H[git commit via MCP]
+        G -->|No| E
+    end
+
+    subgraph Tracking["Continuous Tracking"]
+        I[TenX logs every interaction]
+    end
+
+    C --> D
+    H --> D
+
+    style Morning fill:#e6f3ff
+    style Development fill:#e6ffe6
+    style Tracking fill:#fff3e6
+```
+
+### 6.5.2 Recommended Prompts by Phase
+
+| Phase | MCP Server | Recommended Prompt |
+|-------|------------|-------------------|
+| **Session Start** | git | "Use git MCP to show status of the repository" |
+| **Before Coding** | filesystem | "Read specs/functional.md to understand requirements" |
+| **During Coding** | filesystem | "List files in src/ directory" |
+| **Code Review** | git | "Use git MCP to show diff of all changed files" |
+| **Pre-Commit** | git | "Use git MCP to show the last 5 commits" |
+| **Commit** | git | "Use git MCP to commit with message: 'your message'" |
+
+### 6.5.3 Challenge-Specific Usage
+
+| Challenge Requirement | How Tooling Helps |
+|-----------------------|-------------------|
+| **Spec-First Development** | Use filesystem MCP to read `specs/*.md` before writing code |
+| **Traceability** | All interactions logged by TenX for audit trail |
+| **Git Hygiene** | Use git MCP for status, diff, log, commit without leaving chat |
+| **Documentation** | Use filesystem MCP to scaffold and update `research/*.md` |
 
 ---
 
@@ -444,11 +583,15 @@ flowchart LR
 ### 10.2 Diagnostic Commands
 
 ```bash
-# Check if package exists
+# Check if packages exist
 npm view @modelcontextprotocol/server-filesystem
+npm view mcp-git
 
-# Run server manually for debugging
+# Run filesystem server manually for debugging
 npx -y @modelcontextprotocol/server-filesystem /path/to/dir
+
+# Run git server manually for debugging
+npx -y mcp-git
 
 # Validate JSON config
 python3 -c "import json; json.load(open('.cursor/mcp.json'))"
