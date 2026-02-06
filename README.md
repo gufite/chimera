@@ -120,7 +120,7 @@ chimera/
 - [x] Task 2.1: Master Specification
 - [x] Task 2.2: Context Engineering
 - [x] Task 2.3: Tooling & Skills Strategy
-- [ ] Task 3.1: Test-Driven Development
+- [x] Task 3.1: Test-Driven Development
 - [ ] Task 3.2: Containerization
 - [ ] Task 3.3: CI/CD & Governance
 
