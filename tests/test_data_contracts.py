@@ -62,9 +62,9 @@ class TestCampaignContract:
 
     def test_campaign_has_at_least_one_agent(self, mock_campaign):
         """At least one agent_id MUST be assigned (invariant)."""
-        assert (
-            len(mock_campaign["agent_ids"]) >= 1
-        ), "Campaign must have at least one agent assigned"
+        assert len(mock_campaign["agent_ids"]) >= 1, (
+            "Campaign must have at least one agent assigned"
+        )
 
     def test_paused_campaign_does_not_generate_tasks(self):
         """Paused campaigns MUST NOT generate new tasks (invariant)."""
@@ -101,9 +101,9 @@ class TestTaskContract:
         """Context MUST include sufficient info for stateless execution."""
         context = mock_task["context"]
         assert "goal" in context, "Task context missing goal"
-        assert (
-            "persona_constraints" in context
-        ), "Task context missing persona constraints"
+        assert "persona_constraints" in context, (
+            "Task context missing persona constraints"
+        )
         # This will fail until full context validation is implemented
         pytest.skip("Not implemented: Full context sufficiency validation")
 
@@ -131,9 +131,9 @@ class TestResultArtifactContract:
     def test_confidence_score_in_valid_range(self, mock_result_artifact):
         """Confidence score MUST be between 0.0 and 1.0 inclusive (invariant)."""
         score = mock_result_artifact["confidence_score"]
-        assert (
-            0.0 <= score <= 1.0
-        ), f"Confidence score {score} not in valid range [0.0, 1.0]"
+        assert 0.0 <= score <= 1.0, (
+            f"Confidence score {score} not in valid range [0.0, 1.0]"
+        )
 
     def test_tool_usage_logs_every_mcp_call(self, mock_result_artifact):
         """Tool usage MUST log every MCP Tool call (invariant)."""
