@@ -254,7 +254,41 @@ None (this skill performs actions; it does not read external data).
 
 ---
 
-## 7. Failure Modes
+## 7. Postconditions
+
+### Upon Successful Execution
+
+This skill guarantees:
+
+1. **Output artifacts created:** A success Result containing PublicationResult objects for each target platform with `external_id`, `external_url`, and `published_at` timestamps.
+2. **Audit trail complete:** All required audit events emitted (`skill.publish_content.start`, `skill.publish_content.attempt`, `skill.publish_content.success`, `skill.publish_content.complete`) with `correlation_id` propagated.
+3. **State changes:** 
+   - Publication Record created in PostgreSQL with `publication_id`, `external_id`, `content_snapshot`, `published_at`
+   - Campaign budget decremented (API call costs)
+4. **External system state:** Content published to target platforms (persistent, public posts created).
+
+### Upon Failure
+
+This skill guarantees:
+
+1. **No partial state:** 
+   - If `partial_success_allowed: false`, attempts to rollback published posts (platform-dependent)
+   - If `partial_success_allowed: true`, partial Publication Records created only for successful platforms
+2. **Audit trail:** Failure events emitted with platform-specific error details (`skill.publish_content.failure` per platform).
+3. **Idempotency preserved:** `idempotency_key` ensures retry will not create duplicate posts.
+4. **Error propagation:** Failure output includes per-platform `retry_eligible` flags and error codes for Planner recovery.
+
+### Partial Success Handling
+
+When `partial_success_allowed: true` and ≥1 platform succeeds:
+
+1. **State consistency:** Publication Records created only for successful platforms.
+2. **Audit clarity:** Both success and failure events emitted (per-platform).
+3. **Retry guidance:** Failed platforms listed in output for selective retry.
+
+---
+
+## 8. Failure Modes
 
 ### Retryable Failures
 
@@ -289,7 +323,7 @@ None (this skill performs actions; it does not read external data).
 
 ---
 
-## 8. Observability
+## 9. Observability
 
 ### Required Audit Events
 
@@ -341,7 +375,7 @@ This record is stored in the system of record (PostgreSQL) for engagement tracki
 
 ---
 
-## 9. Traceability to Specifications
+## 10. Traceability to Specifications
 
 | Specification Section | Relevance |
 |-----------------------|-----------|
@@ -355,7 +389,7 @@ This record is stored in the system of record (PostgreSQL) for engagement tracki
 
 ---
 
-## 10. Security & Governance Notes
+## 11. Security & Governance Notes
 
 ### Critical Security Constraints
 
@@ -376,7 +410,7 @@ This record is stored in the system of record (PostgreSQL) for engagement tracki
 
 ---
 
-## 11. Open Questions & Future Enhancements
+## 12. Open Questions & Future Enhancements
 
 - **Q1:** Should this skill support scheduled publishing (future timestamps)?
   - **Status:** Yes, via `schedule_time` field; implementation deferred to v2.

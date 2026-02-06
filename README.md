@@ -78,6 +78,43 @@ uv run mypy src/
 
 ---
 
+## Container & Automation
+
+Project Chimera includes Docker containerization and Make automation for reproducible builds and testing.
+
+### Using Make (Automation)
+
+```bash
+# Run tests locally
+make test              # Quiet output
+make test-verbose      # Verbose output
+make test-coverage     # With coverage report
+
+# Code quality
+make format            # Format with ruff
+make lint              # Lint with ruff + mypy
+
+# Cleanup
+make clean             # Remove caches
+```
+
+### Using Docker
+
+```bash
+# Build container
+make docker-build      # or: docker build -t chimera:dev .
+
+# Run tests in container
+make docker-test       # or: docker run --rm chimera:dev
+
+# Interactive shell
+make docker-shell      # or: docker run --rm -it chimera:dev /bin/bash
+```
+
+The Docker image uses Python 3.11-slim with `uv` for fast dependency resolution. Tests run identically in container and local environments.
+
+---
+
 ## Project Structure
 
 ```
@@ -121,7 +158,7 @@ chimera/
 - [x] Task 2.2: Context Engineering
 - [x] Task 2.3: Tooling & Skills Strategy
 - [x] Task 3.1: Test-Driven Development
-- [ ] Task 3.2: Containerization
+- [x] Task 3.2: Containerization & Automation
 - [ ] Task 3.3: CI/CD & Governance
 
 ---

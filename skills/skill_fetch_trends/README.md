@@ -219,7 +219,29 @@ None (this skill only reads; it does not perform actions).
 
 ---
 
-## 7. Failure Modes
+## 7. Postconditions
+
+### Upon Successful Execution
+
+This skill guarantees:
+
+1. **Output artifacts created:** A success Result containing a ranked list of TrendObjects with all required fields populated (`trend_id`, `topic`, `relevance_score`, `volume`, `sentiment`, `sources`, `detected_at`).
+2. **Audit trail complete:** All required audit events emitted (`skill.fetch_trends.start`, `skill.fetch_trends.mcp_query`, `skill.fetch_trends.complete`) with `correlation_id` propagated.
+3. **State changes:** No persistent state mutations (stateless execution).
+4. **External system state:** MCP Resources queried (read-only); no side effects on external systems.
+
+### Upon Failure
+
+This skill guarantees:
+
+1. **No partial state:** No state mutations occur; skill exits cleanly.
+2. **Audit trail:** Failure events emitted with error details (`skill.fetch_trends.complete` with `status: "failure"`).
+3. **Idempotency preserved:** Retry will not create duplicate side effects (read-only operations).
+4. **Error propagation:** Failure output includes `retry_eligible` flag for Planner decision-making.
+
+---
+
+## 8. Failure Modes
 
 ### Retryable Failures
 
@@ -239,7 +261,7 @@ None (this skill only reads; it does not perform actions).
 
 ---
 
-## 8. Observability
+## 9. Observability
 
 ### Required Audit Events
 
@@ -275,7 +297,34 @@ Recommended metrics to track (implementation detail):
 
 ---
 
-## 9. Traceability to Specifications
+## 10. Security & Trust Boundaries
+
+### Trust Boundaries
+
+- **Input trust:** All inputs from Planner/Worker are considered **TRUSTED** (internal agent state).
+- **External data trust:** Data from MCP Resources (news APIs, social signals) is **UNTRUSTED** and MUST be validated before processing.
+- **MCP Resource isolation:** All external API access MUST go through MCP Resources (no direct API calls).
+
+### Security Constraints
+
+1. **No direct API calls:** Direct external API calls to Twitter/news APIs are PROHIBITED (architectural invariant per `specs/_meta.md` §4.3).
+2. **Credential isolation:** No API keys or secrets in skill code; authentication handled by MCP server layer.
+3. **Input validation:** 
+   - Validate `persona_ref` points to parseable SOUL.md file
+   - Validate `campaign_id` references active campaign
+   - Sanitize trend data from untrusted sources before ranking
+4. **Content filtering:** Relevance filtering MUST occur before returning trends to prevent prompt injection via trend content.
+5. **Rate limit respect:** Honor MCP Resource rate limits to avoid service disruption.
+
+### Threat Mitigation
+
+- **Prompt injection via trends:** Trend text from external sources is treated as data, not instructions; filtered by persona directives.
+- **Data exfiltration:** No sensitive agent state exposed to external MCP Resources (read-only queries only).
+- **Denial of service:** Timeout enforcement (10 seconds) prevents resource exhaustion.
+
+---
+
+## 11. Traceability to Specifications
 
 | Specification Section | Relevance |
 |-----------------------|-----------|
@@ -287,7 +336,7 @@ Recommended metrics to track (implementation detail):
 
 ---
 
-## 10. Open Questions & Future Enhancements
+## 12. Open Questions & Future Enhancements
 
 - **Q1:** Should this skill cache trends for N minutes to reduce MCP Resource load?
   - **Status:** Deferred; implement cache in v2 if needed.
