@@ -14,14 +14,15 @@ RUN apt-get update && apt-get install -y \
 # Install uv (official installation method)
 # Ref: https://docs.astral.sh/uv/getting-started/installation/
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:$PATH"
+ENV PATH="/root/.local/bin:$PATH"
 
 # Copy dependency files first (cache-friendly layering)
-COPY pyproject.toml uv.lock ./
+# README.md is required by hatchling during package build
+COPY pyproject.toml uv.lock README.md ./
 
 # Install dependencies using uv
-# --no-dev flag not used as we need test dependencies
-RUN uv sync --frozen
+# Include dev dependencies (pytest, etc.)
+RUN uv sync --frozen --all-extras
 
 # Copy project files
 COPY . .
@@ -30,4 +31,5 @@ COPY . .
 ENV PYTHONPATH=/app/src:$PYTHONPATH
 
 # Default command: run tests
-CMD ["uv", "run", "pytest", "-v"]
+# Use the virtual environment directly
+CMD [".venv/bin/pytest", "-v"]
