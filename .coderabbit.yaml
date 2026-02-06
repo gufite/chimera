@@ -1,0 +1,134 @@
+# CodeRabbit AI Code Review Configuration
+# Project Chimera - Spec-Driven Development + Governance
+
+# Language and tone
+language: en-US
+tone_instructions: |
+  - Use clear, technical language appropriate for senior engineers
+  - Reference specifications (specs/_meta.md, specs/functional.md, specs/technical.md) when reviewing implementation
+  - Flag any code that bypasses MCP mediation (direct API calls are forbidden)
+  - Flag any code where Workers publish directly without Judge approval
+  - Prioritize architectural invariants and governance rules
+
+# Review scope
+reviews:
+  # High-priority review areas
+  high_level_summary: true
+  poem: false  # No poems, we're professionals
+  review_status: true
+  collapse_walkthrough: false
+  
+  # Auto-reviews
+  auto_review:
+    enabled: true
+    drafts: false  # Don't review draft PRs
+    base_branches:
+      - main
+      - develop
+  
+  # Request changes for critical issues
+  request_changes_workflow: true
+
+# Path-specific review rules
+path_filters:
+  # Specifications - CRITICAL
+  - path: "specs/**/*.md"
+    instructions: |
+      - Verify spec follows Spec Kit conventions (Purpose, Scope, Non-Goals, etc.)
+      - Check normative language (MUST/MUST NOT/SHOULD/MAY)
+      - Flag contradictions with other specs
+      - Ensure traceability references are correct
+      - Reject vague requirements or implementation details in _meta.md
+    
+  # Agent Skills - HIGH PRIORITY
+  - path: "skills/**/README.md"
+    instructions: |
+      - Verify all 10 required sections present (Purpose, Invocation, Input/Output, MCP Deps, Preconditions, Postconditions, Failure Modes, Observability, Security, Doc Control)
+      - Check input/output contracts are JSON-schema-like
+      - Verify MCP dependencies are named (not invented)
+      - Check audit event names follow convention: skill.<name>.<event>
+      - Flag any direct API calls (Skills MUST use MCP Tools)
+  
+  # Implementation Code - SPEC COMPLIANCE
+  - path: "src/**/*.py"
+    instructions: |
+      - Check if code aligns with contracts in specs/technical.md
+      - Flag any direct external API calls (must go through MCP)
+      - Verify Workers do not publish/commit state (Judge-only)
+      - Check correlation_id propagation for traceability
+      - Verify OCC (Optimistic Concurrency Control) if mutating state
+      - Flag missing error handling for MCP tool calls
+  
+  # Tests - TDD COMPLIANCE
+  - path: "tests/**/*.py"
+    instructions: |
+      - Verify tests validate contracts, not implementation
+      - Check fixture usage aligns with conftest.py
+      - Ensure mock_mcp_client is used for MCP interactions
+      - Flag tests that bypass architectural invariants
+      - Verify correlation_id is propagated in test data
+  
+  # Docker & CI/CD
+  - path: "Dockerfile"
+    instructions: |
+      - Check for security best practices (non-root user, minimal base)
+      - Verify layer caching strategy
+      - Flag hardcoded secrets or tokens
+  
+  - path: ".github/workflows/**"
+    instructions: |
+      - Verify tests run before merge
+      - Check secrets are properly referenced (not hardcoded)
+      - Ensure spec validation jobs exist
+
+# Knowledge base - Project-specific context
+knowledge_base:
+  - "This is Project Chimera, an Autonomous Influencer Network following Spec-Driven Development (SDD)"
+  - "Architecture: Hierarchical Swarm (Planner → Worker → Judge) with HITL routing"
+  - "MCP (Model Context Protocol) is the ONLY way to interact with external systems"
+  - "Specifications in specs/ are the source of truth; code must align with specs"
+  - "Skills (internal functions) are NOT the same as MCP Tools (external bridges)"
+  - "Judge is the ONLY component that can commit state or authorize publication"
+  - "Workers MUST be stateless and MUST NOT publish without Judge approval"
+  - "Traceability is mandatory: all agent actions must be auditable with correlation_id"
+  - "Open questions in research/open_questions.md do not block code; they defer decisions"
+
+# Chat settings
+chat:
+  auto_reply: true
+
+# Review depth
+early_access: false
+enable_free_tier: true
+
+# Ignored files
+path_ignore:
+  - "**/*.docx"
+  - "**/*.pdf"
+  - "**/node_modules/**"
+  - "**/.venv/**"
+  - "**/__pycache__/**"
+  - "**/*.pyc"
+  - ".git/**"
+
+# Custom review categories
+custom_labels:
+  - name: "spec-violation"
+    description: "Code contradicts specifications"
+    color: "d73a4a"
+  
+  - name: "mcp-bypass"
+    description: "Direct API call bypassing MCP"
+    color: "d73a4a"
+  
+  - name: "judge-bypass"
+    description: "Worker publishing without Judge approval"
+    color: "d73a4a"
+  
+  - name: "needs-traceability"
+    description: "Missing correlation_id or audit event"
+    color: "fbca04"
+  
+  - name: "skill-contract-incomplete"
+    description: "Skill README missing required sections"
+    color: "fbca04"

@@ -1,0 +1,177 @@
+# Project Chimera - CI/CD Pipeline
+# Automated testing, linting, and container builds
+
+name: CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # --------------------------------------------------------------------------- #
+  #                            Code Quality Checks                              #
+  # --------------------------------------------------------------------------- #
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      
+      - name: Install dependencies
+        run: uv sync --all-extras
+      
+      - name: Run ruff (linter)
+        run: uv run ruff check .
+      
+      - name: Run ruff (formatter check)
+        run: uv run ruff format --check .
+      
+      - name: Run mypy (type checker)
+        run: uv run mypy src/chimera
+        continue-on-error: true  # Type checking is aspirational for now
+
+  # --------------------------------------------------------------------------- #
+  #                               Test Suite                                    #
+  # --------------------------------------------------------------------------- #
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      
+      - name: Install dependencies
+        run: uv sync --all-extras
+      
+      - name: Run tests
+        run: uv run pytest -v --tb=short
+      
+      - name: Generate coverage report
+        run: uv run pytest --cov=src/chimera --cov-report=xml --cov-report=term-missing
+      
+      - name: Upload coverage to Codecov (optional)
+        uses: codecov/codecov-action@v4
+        if: matrix.python-version == '3.11'
+        continue-on-error: true
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+
+  # --------------------------------------------------------------------------- #
+  #                           Container Build                                   #
+  # --------------------------------------------------------------------------- #
+  docker:
+    name: Docker Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: chimera:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Run tests in container
+        run: docker run --rm chimera:ci
+
+  # --------------------------------------------------------------------------- #
+  #                          Specification Validation                           #
+  # --------------------------------------------------------------------------- #
+  specs:
+    name: Validate Specifications
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check spec files exist
+        run: |
+          echo "Validating specification files..."
+          test -f specs/_meta.md || { echo "Missing specs/_meta.md"; exit 1; }
+          test -f specs/functional.md || { echo "Missing specs/functional.md"; exit 1; }
+          test -f specs/technical.md || { echo "Missing specs/technical.md"; exit 1; }
+          test -f specs/openclaw_integration.md || { echo "Missing specs/openclaw_integration.md"; exit 1; }
+          echo "✅ All required specs present"
+      
+      - name: Check skills contracts
+        run: |
+          echo "Validating skills contracts..."
+          test -f skills/README.md || { echo "Missing skills/README.md"; exit 1; }
+          test -f skills/skill_fetch_trends/README.md || { echo "Missing skill_fetch_trends contract"; exit 1; }
+          test -f skills/skill_generate_post_bundle/README.md || { echo "Missing skill_generate_post_bundle contract"; exit 1; }
+          test -f skills/skill_publish_content/README.md || { echo "Missing skill_publish_content contract"; exit 1; }
+          echo "✅ All skill contracts present"
+      
+      - name: Lint markdown files
+        uses: DavidAnson/markdownlint-cli2-action@v18
+        continue-on-error: true
+        with:
+          globs: |
+            specs/**/*.md
+            skills/**/*.md
+            research/**/*.md
+            README.md
+
+  # --------------------------------------------------------------------------- #
+  #                      Security & Dependency Scanning                         #
+  # --------------------------------------------------------------------------- #
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        with:
+          sarif_file: 'trivy-results.sarif'
