@@ -111,6 +111,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          load: true
           push: false
           tags: chimera:ci
           cache-from: type=gha

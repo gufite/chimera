@@ -8,10 +8,11 @@ Fixtures provide:
 - Correlation ID generators
 """
 
-import pytest
 import uuid
-from datetime import datetime, timezone
-from typing import Dict, Any
+from datetime import UTC, datetime
+from typing import Any
+
+import pytest
 
 
 @pytest.fixture
@@ -21,7 +22,7 @@ def correlation_id() -> str:
 
 
 @pytest.fixture
-def mock_agent() -> Dict[str, Any]:
+def mock_agent() -> dict[str, Any]:
     """Mock Agent data contract per specs/technical.md §3.1"""
     return {
         "agent_id": str(uuid.uuid4()),
@@ -29,13 +30,13 @@ def mock_agent() -> Dict[str, Any]:
         "persona_ref": "/personas/test_persona.md",
         "wallet_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
         "status": "active",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "config": {}
+        "created_at": datetime.now(UTC).isoformat(),
+        "config": {},
     }
 
 
 @pytest.fixture
-def mock_persona() -> Dict[str, Any]:
+def mock_persona() -> dict[str, Any]:
     """Mock Persona (SOUL.md) data contract per specs/technical.md §3.2"""
     return {
         "name": "Test Tech Analyst",
@@ -45,39 +46,36 @@ def mock_persona() -> Dict[str, Any]:
         "directives": [
             "cite sources when making claims",
             "avoid hype and speculation",
-            "focus on actionable insights"
+            "focus on actionable insights",
         ],
         "core_beliefs": [
             "Technology should empower humans",
-            "Transparency builds trust"
-        ]
+            "Transparency builds trust",
+        ],
     }
 
 
 @pytest.fixture
-def mock_campaign(mock_agent) -> Dict[str, Any]:
+def mock_campaign(mock_agent) -> dict[str, Any]:
     """Mock Campaign data contract per specs/technical.md §3.3"""
     return {
         "campaign_id": str(uuid.uuid4()),
         "goal_description": "Analyze and explain new AI regulations to startup founders",
         "agent_ids": [mock_agent["agent_id"]],
         "priority": "high",
-        "budget_allocation": {
-            "daily_limit_usd": 50.0,
-            "per_task_limit_usd": 5.0
-        },
+        "budget_allocation": {"daily_limit_usd": 50.0, "per_task_limit_usd": 5.0},
         "status": "active",
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "created_by": "test_operator",
         "constraints": {
             "platforms": ["twitter", "linkedin"],
-            "content_types": ["analysis", "thread"]
-        }
+            "content_types": ["analysis", "thread"],
+        },
     }
 
 
 @pytest.fixture
-def mock_task(mock_campaign) -> Dict[str, Any]:
+def mock_task(mock_campaign) -> dict[str, Any]:
     """Mock Task data contract per specs/technical.md §3.4"""
     return {
         "task_id": str(uuid.uuid4()),
@@ -87,26 +85,24 @@ def mock_task(mock_campaign) -> Dict[str, Any]:
         "status": "pending",
         "context": {
             "goal": "Create analysis post about EU AI Act impact on startups",
-            "persona_constraints": {
-                "persona_ref": "/personas/test_persona.md"
-            },
-            "target_platforms": ["twitter"]
+            "persona_constraints": {"persona_ref": "/personas/test_persona.md"},
+            "target_platforms": ["twitter"],
         },
         "acceptance_criteria": [
             "Content aligns with persona voice",
             "Content includes source citations",
-            "Content length appropriate for platform"
+            "Content length appropriate for platform",
         ],
         "assigned_worker_id": None,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "deadline": None,
         "retry_count": 0,
-        "max_retries": 3
+        "max_retries": 3,
     }
 
 
 @pytest.fixture
-def mock_result_artifact(mock_task) -> Dict[str, Any]:
+def mock_result_artifact(mock_task) -> dict[str, Any]:
     """Mock Result Artifact data contract per specs/technical.md §3.5"""
     return {
         "result_id": str(uuid.uuid4()),
@@ -116,7 +112,7 @@ def mock_result_artifact(mock_task) -> Dict[str, Any]:
         "content": {
             "text": "The EU AI Act establishes a risk-based framework...",
             "media_refs": [],
-            "hashtags": ["#AIRegulation", "#EUAIAct"]
+            "hashtags": ["#AIRegulation", "#EUAIAct"],
         },
         "confidence_score": 0.85,
         "tool_usage": [
@@ -124,33 +120,31 @@ def mock_result_artifact(mock_task) -> Dict[str, Any]:
                 "tool_name": "text_completion",
                 "input_params": {"prompt": "Analyze EU AI Act"},
                 "output_summary": "Generated analysis",
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         ],
-        "provenance": {
-            "memory_refs": [],
-            "signal_refs": ["trend-eu-ai-act-001"]
-        },
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "execution_duration_ms": 2340
+        "provenance": {"memory_refs": [], "signal_refs": ["trend-eu-ai-act-001"]},
+        "created_at": datetime.now(UTC).isoformat(),
+        "execution_duration_ms": 2340,
     }
 
 
 @pytest.fixture
 def mock_mcp_client():
     """Mock MCP client for testing skills that call MCP Tools/Resources."""
+
     class MockMCPClient:
         def __init__(self):
             self.calls = []
-        
-        def call_tool(self, tool_name: str, params: Dict[str, Any]) -> Dict[str, Any]:
+
+        def call_tool(self, tool_name: str, params: dict[str, Any]) -> dict[str, Any]:
             """Mock MCP Tool call."""
             self.calls.append({"tool": tool_name, "params": params})
             return {"status": "success", "result": f"Mock result from {tool_name}"}
-        
-        def read_resource(self, resource_uri: str) -> Dict[str, Any]:
+
+        def read_resource(self, resource_uri: str) -> dict[str, Any]:
             """Mock MCP Resource read."""
             self.calls.append({"resource": resource_uri})
             return {"status": "success", "data": f"Mock data from {resource_uri}"}
-    
+
     return MockMCPClient()
