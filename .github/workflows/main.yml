@@ -9,6 +9,11 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+# Explicit least-privilege permissions
+permissions:
+  contents: read
+  security-events: write  # For Trivy SARIF upload
+
 jobs:
   # --------------------------------------------------------------------------- #
   #                            Code Quality Checks                              #
@@ -71,8 +76,11 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras
       
+      - name: Install make (if not available)
+        run: sudo apt-get update && sudo apt-get install -y make
+      
       - name: Run tests
-        run: uv run pytest -v --tb=short
+        run: make test-verbose
       
       - name: Generate coverage report
         run: uv run pytest --cov=src/chimera --cov-report=xml --cov-report=term-missing
