@@ -118,8 +118,8 @@ chimera/
 - [x] Task 1.2: Domain Architecture Strategy
 - [x] Task 1.3: Golden Environment Setup
 - [x] Task 2.1: Master Specification
-- [ ] Task 2.2: Context Engineering
-- [ ] Task 2.3: Tooling & Skills Strategy
+- [x] Task 2.2: Context Engineering
+- [x] Task 2.3: Tooling & Skills Strategy
 - [ ] Task 3.1: Test-Driven Development
 - [ ] Task 3.2: Containerization
 - [ ] Task 3.3: CI/CD & Governance
