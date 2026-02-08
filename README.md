@@ -20,7 +20,7 @@ engagement without human intervention.
 - **FastRender Swarm Architecture**: Hierarchical Planner-Worker-Judge pattern
 - **Model Context Protocol (MCP)**: Universal interface for external systems
 - **Human-in-the-Loop (HITL)**: Confidence-based dynamic routing
-- **Agentic Commerce**: Crypto wallet integration via Coinbase AgentKit
+- **Agentic Commerce**: Crypto wallet integration via Coinbase AgentKit**constitution** for all Project Chimera specifications
 
 ---
 
